@@ -11,6 +11,9 @@ public class Tower : MonoBehaviour {
     public GameObject raycastOriginObject;
     LineRenderer lineRend;
     Collider targetCollider;
+    public int towerLevel;
+    public float towerXP, towerXPToLevelNextLevel;
+    public TextMesh levelText;
 
 	// Use this for initialization
 	void Start ()
@@ -21,6 +24,9 @@ public class Tower : MonoBehaviour {
 
         lineRend = GetComponentInChildren<LineRenderer>();
         lineRend.enabled = false;
+
+        // we level up at spawn, so we're lvl 1
+        LevelUp();
     }
 	
 	// Update is called once per frame
@@ -135,6 +141,7 @@ public class Tower : MonoBehaviour {
     void Attack()
     {
         StartCoroutine(ShowDebugLineAttack());
+        target.SendMessage("TakeDamage", damage);
     }
 
     IEnumerator ShowDebugLineAttack()
@@ -144,5 +151,23 @@ public class Tower : MonoBehaviour {
         lineRend.enabled = true;
         yield return new WaitForSeconds(.2f);
         lineRend.enabled = false;
+    }
+
+    public void AddExperience(float xpToAdd)
+    {
+        towerXP += xpToAdd;
+        // problem is, it won't level up twice if it gets a burst of XP that would level it twice, fix this later
+        if (towerXP >= towerXPToLevelNextLevel)
+        {
+            LevelUp();
+        }
+    }
+
+    public void LevelUp()
+    {
+        towerLevel++;
+        // make the xp requirement based on the level
+        towerXPToLevelNextLevel += towerLevel * 100;
+        levelText.text = "Level: " + towerLevel.ToString();
     }
 }
