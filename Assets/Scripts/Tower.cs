@@ -3,8 +3,10 @@ using System.Collections;
 
 public class Tower : MonoBehaviour {
 
+    public enum TowerType { Rifleman, DualRevolvers, DynamiteThrower};
+    public TowerType towerType;
     public float health, damage, range, attackspeed;
-    Projector projector;
+    public Projector projector;
     public Transform target;
     float attackTimer;
     int layerMask;
@@ -149,7 +151,7 @@ public class Tower : MonoBehaviour {
         lineRend.SetPosition(0, transform.position);
         lineRend.SetPosition(1, target.position);
         lineRend.enabled = true;
-        yield return new WaitForSeconds(.2f);
+        yield return new WaitForSeconds(.1f);
         lineRend.enabled = false;
     }
 

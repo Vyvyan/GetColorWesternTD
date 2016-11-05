@@ -12,7 +12,7 @@ public class MoveToClick : MonoBehaviour {
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(1))
         {
             RaycastHit hit;
 

@@ -10,6 +10,9 @@ public class GameManager : MonoBehaviour {
     public GameState gameState;
     public int spawnIndex;
     public static int numberOfEnemiesAlive;
+    public Tower[] towers;
+    Tower selectedTower, lastFrameSelectedTower;
+    public int towerIndex;
 
     // wave variables
     public float spawnRate, spawnRateTimer;
@@ -19,6 +22,8 @@ public class GameManager : MonoBehaviour {
     {
         gameState = GameState.PreGame;
         enemySpawners = GameObject.FindObjectsOfType<EnemySpawner>();
+        towers = GameObject.FindObjectsOfType<Tower>();
+        selectedTower = towers[0];
         waveNumber = 0;
         spawnIndex = 0;
         numberOfEnemiesAlive = 0;
@@ -27,6 +32,47 @@ public class GameManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
+        // switching between towers with keys
+        if (Input.GetKeyUp(KeyCode.E))
+        { 
+            if (towerIndex + 1 > towers.Length - 1)
+            {
+                towerIndex = 0;
+                selectedTower = towers[towerIndex];
+            }
+            else
+            {
+                towerIndex++;
+                selectedTower = towers[towerIndex];
+            }
+        }
+        if (Input.GetKeyUp(KeyCode.Q))
+        {
+            if (towerIndex - 1 < 0)
+            {
+                towerIndex = towers.Length - 1;
+                selectedTower = towers[towerIndex];
+            }
+            else
+            {
+                towerIndex--;
+                selectedTower = towers[towerIndex];
+            }
+        }
+        // switch towers on click
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, 100))
+            {
+                if (hit.collider.gameObject.tag == "Player")
+                {
+                    selectedTower = hit.collider.gameObject.GetComponent<Tower>();
+                }
+            }
+        }
+
         // PRE GAME
         if (gameState == GameState.PreGame)
         {
@@ -90,6 +136,18 @@ public class GameManager : MonoBehaviour {
         }
 	}
 
+    void LateUpdate()
+    {
+        // if we just switched from a tower, then change which tower we have selected visually
+        if (selectedTower != lastFrameSelectedTower)
+        {
+            ChangeSelectedTowerVisualsAndMovement();
+        }
+        
+        // update our lastframe tower
+        lastFrameSelectedTower = selectedTower;
+    }
+
     IEnumerator inBetweenWavesTimer()
     {
         Debug.Log("In between waves!");
@@ -128,5 +186,18 @@ public class GameManager : MonoBehaviour {
         {
             GUI.Label(new Rect(Screen.width / 2, Screen.height / 2, 600, 600), "Press Space To Start");
         }
+    }
+
+    void ChangeSelectedTowerVisualsAndMovement()
+    {
+        // turn off all range indicators
+        foreach (Tower tempTower in towers)
+        {
+            tempTower.projector.enabled = false;
+            tempTower.GetComponent<MoveToClick>().enabled = false;
+        }
+        // now turn on the tower that is selected 
+        selectedTower.projector.enabled = true;
+        selectedTower.GetComponent<MoveToClick>().enabled = true;
     }
 }

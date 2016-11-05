@@ -69,7 +69,7 @@ public class MouseOrbitImproved : MonoBehaviour
     void LateUpdate()
     {
 
-        if (Input.GetKey(KeyCode.Mouse1))
+        if (Input.GetKey(KeyCode.Mouse0))
         {
             isHoldingRightMouse = true;
         }
