@@ -69,7 +69,7 @@ public class MouseOrbitImproved : MonoBehaviour
     void LateUpdate()
     {
 
-        if (Input.GetKey(KeyCode.Mouse0))
+        if (Input.GetKey(KeyCode.LeftShift))
         {
             isHoldingRightMouse = true;
         }
@@ -82,8 +82,9 @@ public class MouseOrbitImproved : MonoBehaviour
         {
             if (target)
             {
-                x += Input.GetAxis("Mouse X") * xSpeed * distance * 0.02f;
-                y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                // get rid of the - in front of the x and y speeds below to change which way the camera rotates, this way felt more natural
+                x += Input.GetAxis("Mouse X") * -xSpeed * distance * 0.02f;
+                y -= Input.GetAxis("Mouse Y") * -ySpeed * 0.02f;
 
                 y = ClampAngle(y, yMinLimit, yMaxLimit);
 

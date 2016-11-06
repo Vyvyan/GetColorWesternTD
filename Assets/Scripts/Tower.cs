@@ -94,12 +94,6 @@ public class Tower : MonoBehaviour {
         if (!target)
         {
             Collider[] enemiesInRange = Physics.OverlapSphere(gameObject.transform.position, range / 2, layerMask);
-            /*
-            foreach(Collider col in enemiesInRange)
-            {
-                Debug.Log(col.name.ToString() + " is in range!");
-            }
-            */
             target = GetClosestEnemy(enemiesInRange);
         }
     }

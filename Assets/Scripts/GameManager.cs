@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour {
 
@@ -13,6 +14,12 @@ public class GameManager : MonoBehaviour {
     public Tower[] towers;
     Tower selectedTower, lastFrameSelectedTower;
     public int towerIndex;
+    public int numberOfBlockadges;
+    public bool buildMode;
+    public GameObject blockade;
+    Projector buildModeGrid;
+    GameObject ghostBlockadeObject;
+    Vector3 ghostBlockadeHiddenPosition;
 
     // wave variables
     public float spawnRate, spawnRateTimer;
@@ -27,6 +34,12 @@ public class GameManager : MonoBehaviour {
         waveNumber = 0;
         spawnIndex = 0;
         numberOfEnemiesAlive = 0;
+        numberOfBlockadges = 100;
+        buildModeGrid = GameObject.FindGameObjectWithTag("buildModeGrid").GetComponent<Projector>();
+        buildModeGrid.enabled = false;
+        ghostBlockadeObject = GameObject.FindGameObjectWithTag("GhostBlockade");
+        ghostBlockadeHiddenPosition = ghostBlockadeObject.transform.position;
+        SceneManager.LoadScene(1, LoadSceneMode.Additive);
     }
 	
 	// Update is called once per frame
@@ -134,6 +147,54 @@ public class GameManager : MonoBehaviour {
                 StartCoroutine(inBetweenWavesTimer());
             }
         }
+        
+        // build mode stuff
+        if (gameState == GameState.PreGame || gameState == GameState.InBetweenWaves)
+        {
+            if (Input.GetKeyUp(KeyCode.B))
+            {
+                buildMode = !buildMode;
+            }
+
+            if (buildMode)
+            {
+                RaycastHit hit;
+
+                if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit, Mathf.Infinity))
+                {
+                    if (hit.collider.gameObject.tag == "Ground")
+                    {
+                        Debug.Log("hitting ground");
+                        ghostBlockadeObject.transform.position = new Vector3(SnapPosition(hit.point.x, 2), 3, SnapPosition(hit.point.z, 2));
+                        
+                        if (Input.GetKeyDown(KeyCode.Mouse0))
+                        {
+                            if (numberOfBlockadges > 0)
+                            {
+                                Instantiate(blockade, ghostBlockadeObject.transform.position, ghostBlockadeObject.transform.rotation);
+                                numberOfBlockadges--;
+                            }
+                        }
+                    }
+                    // if we h it something that isn't the ground
+                    else
+                    {
+                        ghostBlockadeObject.transform.position = ghostBlockadeHiddenPosition;
+                    }
+                }
+                // if we hit nothing
+                else
+                {
+                    ghostBlockadeObject.transform.position = ghostBlockadeHiddenPosition;
+                }
+            }
+        }
+        else
+        {
+            buildMode = false;
+        }
+
+        buildModeGrid.enabled = buildMode;
 	}
 
     void LateUpdate()
@@ -199,5 +260,15 @@ public class GameManager : MonoBehaviour {
         // now turn on the tower that is selected 
         selectedTower.projector.enabled = true;
         selectedTower.GetComponent<MoveToClick>().enabled = true;
+    }
+
+    float SnapPosition(float input, float factor)
+    {
+        if (factor <= 0f)
+            throw new UnityException("factor argument must be above 0");
+
+        float x = Mathf.Round(input / factor) * factor;
+
+        return x;
     }
 }
