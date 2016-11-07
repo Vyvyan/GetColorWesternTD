@@ -6,7 +6,7 @@ public class GameManager : MonoBehaviour {
 
     public int waveNumber;
     public EnemySpawner[] enemySpawners;
-    public GameObject groundEnemy;
+    public GameObject groundEnemy_Prefab, undergroundEnemy_Prefab;
     public enum GameState { PreGame, SpawningEnemies, Dead, Win, InBetweenWaves, AllEnemiesSpawnedThisWave};
     public GameState gameState;
     public int spawnIndex;
@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour {
         buildModeGrid.enabled = false;
         ghostBlockadeObject = GameObject.FindGameObjectWithTag("GhostBlockade");
         ghostBlockadeHiddenPosition = ghostBlockadeObject.transform.position;
+        // load our second nav mesh
         SceneManager.LoadScene(1, LoadSceneMode.Additive);
     }
 	
@@ -226,7 +227,12 @@ public class GameManager : MonoBehaviour {
         }
         else if (enemyCode == '1')
         {
-            Instantiate(groundEnemy, enemySpawner.transform.position, enemySpawner.transform.rotation);
+            Instantiate(groundEnemy_Prefab, enemySpawner.transform.position, enemySpawner.transform.rotation);
+            numberOfEnemiesAlive++;
+        }
+        else if (enemyCode == '2')
+        {
+            Instantiate(undergroundEnemy_Prefab, enemySpawner.transform.position - (Vector3.up * .8f), enemySpawner.transform.rotation);
             numberOfEnemiesAlive++;
         }
     }

@@ -41,7 +41,7 @@ public class MoveToClick : MonoBehaviour {
                     Debug.Log(gameObject.name + " is floating about ground");
                     floatingInAirTimer += Time.deltaTime;
 
-                    if (floatingInAirTimer > .2f)
+                    if (floatingInAirTimer > .25f)
                     {
                         WarpToGround();
                     }
@@ -62,6 +62,7 @@ public class MoveToClick : MonoBehaviour {
     {
         Vector3 whereWeAreMovingTo = agent.destination;
         agent.Stop();
+        agent.ResetPath();
         agent.Warp(new Vector3(transform.position.x, 3.5f, transform.position.z));
         agent.destination = whereWeAreMovingTo;
         agent.Resume();

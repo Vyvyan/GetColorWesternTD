@@ -5,11 +5,13 @@ public class Tower : MonoBehaviour {
 
     public enum TowerType { Rifleman, DualRevolvers, DynamiteThrower};
     public TowerType towerType;
-    public float health, damage, range, attackspeed;
+    public enum AttackType { aboveGround, belowGround, both, none};
+    public AttackType attackType;
+    public float health, damage, range, attackspeed, aoeRange;
     public Projector projector;
     public Transform target;
     float attackTimer;
-    int layerMask;
+    public int aboveGroundLayerMask, underGroundLayerMask, combinedLayerMask;
     public GameObject raycastOriginObject;
     LineRenderer lineRend;
     Collider targetCollider;
@@ -29,13 +31,32 @@ public class Tower : MonoBehaviour {
 
         // we level up at spawn, so we're lvl 1
         LevelUp();
+
+        // layer mask setup;
+        aboveGroundLayerMask = 1 << 9;
+        underGroundLayerMask = 1 << 10;
     }
 	
 	// Update is called once per frame
 	void Update ()
     {
-        // layer mask setup;
-        layerMask = 1 << 9;
+        if (attackType == AttackType.aboveGround)
+        {
+            combinedLayerMask = aboveGroundLayerMask;
+        }
+        else if (attackType == AttackType.belowGround)
+        {
+            combinedLayerMask = underGroundLayerMask;
+        }
+        else if (attackType == AttackType.both)
+        {
+            combinedLayerMask = aboveGroundLayerMask | underGroundLayerMask;
+        }
+        else if (attackType == AttackType.none)
+        {
+            combinedLayerMask = 0;
+        }
+
 
         // make sure the projector shows the right range (idk why it's divided by 2, it just works)
         projector.orthographicSize = range / 2;
@@ -90,11 +111,14 @@ public class Tower : MonoBehaviour {
 
     void FixedUpdate()
     {
-        // if we dont' have a target, we need to get one
-        if (!target)
+        // if we dont' have a target, we need to get one, unless we can't attack
+        if (attackType != AttackType.none)
         {
-            Collider[] enemiesInRange = Physics.OverlapSphere(gameObject.transform.position, range / 2, layerMask);
-            target = GetClosestEnemy(enemiesInRange);
+            if (!target)
+            {
+                Collider[] enemiesInRange = Physics.OverlapSphere(gameObject.transform.position, range / 2, combinedLayerMask);
+                target = GetClosestEnemy(enemiesInRange);
+            }
         }
     }
 
@@ -137,7 +161,21 @@ public class Tower : MonoBehaviour {
     void Attack()
     {
         StartCoroutine(ShowDebugLineAttack());
-        target.SendMessage("TakeDamage", damage);
+
+        // aoe attack
+        if (towerType == TowerType.DynamiteThrower)
+        {
+            Collider[] enemiesInExplosionRadius = Physics.OverlapSphere(target.transform.position, aoeRange / 2, combinedLayerMask);
+            foreach (Collider col in enemiesInExplosionRadius)
+            {
+                col.SendMessage("TakeDamage", damage);
+            }
+        }
+        // normal attack
+        else
+        {
+            target.SendMessage("TakeDamage", damage);
+        }
     }
 
     IEnumerator ShowDebugLineAttack()
